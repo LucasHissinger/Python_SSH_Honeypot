@@ -47,7 +47,7 @@ To check if the docker is successfully launched use
 To add creds to the honeypot modify the file "authorized_creds" in the key folder and add the creds you want to use in the following format :
 
 ```bash
-  username:password:content_of_key.pub
+  username:password:content_of_key_user.pub
 ```
 
 ## How to use
@@ -56,7 +56,7 @@ Launch the project and connect to the honeypot with the following command
 ```bash
   ssh username@ip_of_the_docker
 ```
-or
+or (dont forget to use chmod 400 on your key)
 ```bash
   ssh -i user_key username@ip_of_the_docker
 ```
