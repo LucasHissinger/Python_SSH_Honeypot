@@ -1,4 +1,7 @@
 # Byte-compiled / optimized / DLL files
+user_key/
+key/host_key.pem
+key/host_key.pem.pub
 __pycache__/
 *.py[cod]
 *$py.class
