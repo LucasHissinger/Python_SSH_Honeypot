@@ -1,4 +1,4 @@
 #!/bin/bash
 
 export PYTHONPATH=.
-pytest tests
+pytest -s tests

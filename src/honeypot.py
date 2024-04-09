@@ -12,6 +12,7 @@ import paramiko
 import logging
 
 from src.sys_func import commands, check_binary
+from src.get_infos_user import get_infos_user
 
 SSH_BANNER = "SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.1"
 
@@ -55,6 +56,8 @@ def run(ip: str, port: int, key_path: str) -> None:
     while True:
         client, addr = sock.accept()
         logging.info(f"Got a connection from {addr[0]}:{addr[1]}")
+        infos, address = get_infos_user(addr[0])
+        logging.info(f"Infos for client {addr[0]}: {infos} - {address}")
         threading.Thread(target=handle_connection, args=(client, host_key, addr)).start()
 
 
