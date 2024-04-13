@@ -5,12 +5,15 @@
 ## class
 ##
 
-import logging
 import paramiko
+
+from src.sys_func import commands, check_binary
+from src.Loggerclass import Logger
 
 
 class Honeypot(paramiko.ServerInterface):
     def __init__(self, port: int, ip_serv: str, host_key_filename: str, ip_client: str) -> None:
+        self.logger = Logger(ip_client)
         self.port = port
         self.ip_serv = ip_serv
         self.ip_client = ip_client
@@ -27,7 +30,7 @@ class Honeypot(paramiko.ServerInterface):
         return f"honeypot({self.port}, {self.ip})"
 
     def check_channel_request(self, kind: str, chanid: int) -> int:
-        logging.info(
+        self.logger.log_info(
             f"client called check_channel_request ({self.ip_client}) with kind {kind} and chanid {chanid}"
         )
         if kind == "session":
@@ -44,18 +47,18 @@ class Honeypot(paramiko.ServerInterface):
 
     def check_channel_exec_request(self, channel, command):
         command_text = str(command.decode("utf-8"))
-        logging.info(
+        self.logger.log_info(
             f"client called check_channel_exec_request ({self.ip_client}) with command {command_text}"
         )
         return True
 
     def check_auth_password(self, username: str, password: str) -> int:
-        logging.info(
+        self.logger.log_info(
             f"client called check_auth_password ({self.ip_client}) with username {username} and password {password}"
         )
         if username in self.authorized_passwords:
             if password == self.authorized_passwords[username]:
-                logging.info(f"password authentication successful for {username}")
+                self.logger.log_info(f"password authentication successful for {username}")
                 return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
@@ -63,12 +66,32 @@ class Honeypot(paramiko.ServerInterface):
         return "publickey,password, none"
 
     def check_auth_publickey(self, username, key):
-        logging.info(
+        self.logger.log_info(
             f"client called check_auth_publickey ({self.ip_client}) with username {username} and key {key.get_name()} "
         )
-        logging.info(f"content of key: {key.get_base64()}")
+        self.logger.log_info(f"content of key: {key.get_base64()}")
         if username in self.authorized_keys:
             if key.get_base64() in self.authorized_keys[username]:
-                logging.info(f"public key authentication successful for {username}")
+                self.logger.log_info(f"public key authentication successful for {username}")
                 return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
+
+    def handle_commands(self, commend_text: str, chan: paramiko.Channel, username: str):
+        if commend_text[-1] == "\r":
+            self.logger.log_warning(
+                f"command : {commend_text.replace(chr(13), '')} by ip {username}"
+            )
+            if commend_text in commands:
+                chan.send(commands[commend_text](chan))
+            else:
+                if check_binary(commend_text.split(" ")[0].replace(chr(13), "")):
+                    chan.send(
+                        f"\r\n$: you're not authorized to use {commend_text.split(' ')[0].replace(chr(13), '')} on workspace"
+                    )
+                else:
+                    chan.send(
+                        f"\r\n$: {commend_text.split(' ')[0].replace(chr(13), '')}: command not found"
+                    )
+            chan.send("\r\n$: ")
+            return ""
+        return commend_text
