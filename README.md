@@ -76,7 +76,67 @@ To run tests, go to the root of the repo and run the following command
   chmod +x run_tests
   ./run_tests
 ```
+## New features
 
+### Get information about the user
+
+This feature will allow the honeypot to get information about the user connected to the honeypot and write it in the log file when
+the user is connected.
+The information will be the following :
+
+- country : country of the user
+- countryCode : country code associated with the country
+- region: region Code of the user
+- regionName: region name of the user
+- city: city of the user
+- zip: zip code of the user
+- lat: latitude of the user
+- lon: longitude of the user
+- isp: internet service provider of the user
+
+Next, with the geopy.geocoders library, we will be able to get more infos about the geographical location of the user.
+The infos will be:
+
+- address: address of the user
+- city: city of the user
+- state: state of the user
+- country: country of the user
+
+Display the information in the log file in the following format :
+
+address, city, state, country
+
+### Logging system
+The logs are in the logs folder and are architecture as follows :
+```bash
+logs
+├── 127.0.0.1
+│   ├── honeypot_2024-04-14 22:22:16.log
+│   └── honeypot_2024-04-14 22:22:24.log
+└── 34.35.36.37
+    ├── honeypot_2024-04-14 23:22:18.log
+    └── honeypot_2024-04-14 23:34:45.log
+```
+
+The logging system works as follows:
+- When the user connects to the honeypot, the honeypot will write create a log file named with the date of the creation of the user sessions in the folder named by the ip of the user.
+
+- The logging system will create a log file by session, if someone connects to the honeypot and disconnects and reconnects, the honeypot will create a new log file for the new session.
+
+- you can erase one folder of logs by running the project with the following command:
+```bash
+  python main.py --port=port --delete-logs=ip
+```
+
+- you can erase all the logs with the following command:
+```bash
+  python main.py --port=port --delete-all-logs
+```
+
+- or using the script delete_logs.sh
+```bash
+  ./delete_logs.sh [<ip> | all]
+```
 
 ## Documentation
 
