@@ -11,7 +11,7 @@ from datetime import datetime
 
 
 def create_unique_log(ip: str) -> str:
-    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    date = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
     if not os.path.exists("./logs/" + ip):
         os.makedirs("./logs/" + ip)
     filepath = "./logs/" + ip + "/"

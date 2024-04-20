@@ -15,25 +15,25 @@ def check_binary(binary: str) -> bool:
     return False
 
 
-def my_exit(chan: paramiko.Channel):
+def my_exit(chan: paramiko.Channel) -> str:
     chan.send("\r\nConnection closed (via exit command)\r\n")
     chan.close()
     return ""
 
 
-def my_id(chan: paramiko.Channel):
+def my_id(chan: paramiko.Channel) -> str:
     return "\r\nuid=1000(user) gid=1000(user) groupes=1000(user)"
 
 
-def my_ls(chan: paramiko.Channel):
+def my_ls(chan: paramiko.Channel) -> str:
     return "\r\nBureau\r\nDocuments\r\nImages\r\nMusique\r\nVidéos\r\nWork"
 
 
-def my_cd(chan: paramiko.Channel):
+def my_cd(chan: paramiko.Channel) -> str:
     return "\r\nchanged directory with success"
 
 
-def my_pwd(chan: paramiko.Channel):
+def my_pwd(chan: paramiko.Channel) -> str:
     return "\r\n/home/user"
 
 

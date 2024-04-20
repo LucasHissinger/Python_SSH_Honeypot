@@ -10,7 +10,7 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install iptables
-RUN apt update -y && apt-get install iptables sudo -y
+RUN apt update -y && apt-get install iptables sudo -y && apt-get install sqlite3 -y
 
 # Make port 22 available to the world outside this container
 EXPOSE 22

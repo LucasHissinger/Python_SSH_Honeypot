@@ -6,14 +6,14 @@
 ##
 
 
-def is_private_ip(ip):
+def is_private_ip(ip: str) -> bool:
     import re
 
     regex = r"(^(192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)\d{1,3}\.\d{1,3}$)|(^(10\.|127\.)\d{1,3}\.\d{1,3}\.\d{1,3}$)"
     return bool(re.match(regex, ip))
 
 
-def get_location_info(ip_address: str):
+def get_location_info(ip_address: str) -> dict:
     import requests
 
     infos = {
@@ -38,7 +38,7 @@ def get_location_info(ip_address: str):
     return infos
 
 
-def lat_lon_to_address(lat, lon):
+def lat_lon_to_address(lat: float, lon: float) -> str:
     from geopy.geocoders import Nominatim
 
     geolocator = Nominatim(user_agent="geoapiExercises")

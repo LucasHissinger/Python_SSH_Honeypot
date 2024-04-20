@@ -9,11 +9,15 @@ import paramiko
 
 from src.sys_func import commands, check_binary
 from src.Loggerclass import Logger
+from src.DatabaseClass import Database
 
 
 class Honeypot(paramiko.ServerInterface):
-    def __init__(self, port: int, ip_serv: str, host_key_filename: str, ip_client: str) -> None:
+    def __init__(
+        self, port: int, ip_serv: str, host_key_filename: str, ip_client: str, db: Database
+    ) -> None:
         self.logger = Logger(ip_client)
+        self.bdd = db
         self.port = port
         self.ip_serv = ip_serv
         self.ip_client = ip_client
@@ -37,15 +41,15 @@ class Honeypot(paramiko.ServerInterface):
             return paramiko.OPEN_SUCCEEDED
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
-    def check_channel_shell_request(self, channel):
+    def check_channel_shell_request(self, channel) -> bool:
         return True
 
     def check_channel_pty_request(
         self, channel, term, width, height, pixelwidth, pixelheight, modes
-    ):
+    ) -> bool:
         return True
 
-    def check_channel_exec_request(self, channel, command):
+    def check_channel_exec_request(self, channel, command: bytes) -> bool:
         command_text = str(command.decode("utf-8"))
         self.logger.log_info(
             f"client called check_channel_exec_request ({self.ip_client}) with command {command_text}"
@@ -62,10 +66,12 @@ class Honeypot(paramiko.ServerInterface):
                 return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-    def get_allowed_auths(self, username):
+    def get_allowed_auths(self, username) -> str:
         return "publickey,password, none"
 
-    def check_auth_publickey(self, username, key):
+    def check_auth_publickey(
+        self, username, key
+    ) -> paramiko.AUTH_SUCCESSFUL | paramiko.AUTH_FAILED:
         self.logger.log_info(
             f"client called check_auth_publickey ({self.ip_client}) with username {username} and key {key.get_name()} "
         )
@@ -76,7 +82,7 @@ class Honeypot(paramiko.ServerInterface):
                 return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-    def handle_commands(self, commend_text: str, chan: paramiko.Channel, username: str):
+    def handle_commands(self, commend_text: str, chan: paramiko.Channel, username: str) -> str:
         if commend_text[-1] == "\r":
             self.logger.log_warning(
                 f"command : {commend_text.replace(chr(13), '')} by ip {username}"
