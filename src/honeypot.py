@@ -31,6 +31,39 @@ def run(ip: str, port: int, key_path: str) -> None:
         client, addr = sock.accept()
         threading.Thread(target=handle_connection, args=(client, host_key, addr, bdd)).start()
 
+def insert_infos(server: Honeypot, ip: str, infos: dict, address: str) -> None:
+    if server.bdd.check_if_exists(server.bdd.tables["users"], f"ip = '{ip}'"):
+        return
+    result = server.bdd.insert(server.bdd.tables["users"], {"ip": ip, "created_at": datetime.now()})
+    user_id = result.lastrowid
+    if infos is not None:
+        infos_user_values = {
+            "user_id": user_id,
+            "country": infos.get("country", ""),
+            "countryCode": infos.get("countryCode", ""),
+            "region": infos.get("region", ""),
+            "regionName": infos.get("regionName", ""),
+            "city": infos.get("city", ""),
+            "zip": infos.get("zip", ""),
+            "isp": infos.get("isp", ""),
+            "addr": address if address else "",
+            "created_at": datetime.now()
+        }
+    else:
+        infos_user_values = {
+            "user_id": user_id,
+            "country": "",
+            "countryCode": "",
+            "region": "",
+            "regionName": "",
+            "city": "",
+            "zip": "",
+            "isp": "",
+            "addr": address if address else "",
+            "created_at": datetime.now()
+        }
+    server.bdd.insert(server.bdd.tables["infos"], [infos_user_values])
+    server.bdd.conn.commit()
 
 def handle_connection(
     conn: socket.socket, host_key: paramiko.rsakey.RSAKey, addr: tuple, bdd: Database
@@ -46,8 +79,7 @@ def handle_connection(
         infos, address = get_infos_user(addr[0])
         server.logger.log_info(f"Got a connection from {addr[0]}:{addr[1]}")
         server.logger.log_info(f"Infos for client {addr[0]}: {infos} - {address}")
-        server.bdd.insert(server.bdd.tables["users"], {"ip": addr[0], "created_at": datetime.now()})
-        # server.bdd.insert(server.bdd.tables["infos"], {"user_id": 1, "city": address[0], "addr": address[1], "isp": address[2], "created_at": datetime.now()})
+        insert_infos(server, addr[0], infos, address)
     except paramiko.SSHException as e:
         print(f"SSH negotiation failed: {e}")
         return

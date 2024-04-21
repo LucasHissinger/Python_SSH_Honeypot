@@ -42,6 +42,10 @@ class Database:
         for row in result:
             print(row)
 
+    def check_if_exists(self, table, where) -> bool:
+        result = self.select_where(table, where, '*')
+        return result.fetchone() is not None
+
     def run(self):
         self.metadata.create_all(self.engine)
 
@@ -54,9 +58,14 @@ def create_database() -> Database:
         "infos",
         [
             db.Column("user_id", db.Integer(), db.ForeignKey("users.id")),
+            db.Column("country", db.String(255)),
+            db.Column("countryCode", db.String(255)),
+            db.Column("region", db.String(255)),
+            db.Column("regionName", db.String(255)),
             db.Column("city", db.String(255)),
-            db.Column("addr", db.String(255)),
+            db.Column("zip", db.String(255)),
             db.Column("isp", db.String(255)),
+            db.Column("addr", db.String(255)),
             db.Column("created_at", db.TIMESTAMP),
         ],
     )
