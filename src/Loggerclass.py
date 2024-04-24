@@ -33,7 +33,13 @@ class Logger:
         self.logger.addHandler(file_handler)
 
     def __repr__(self) -> str:
-        return f"Logger({self.filepath}, {self.filename})"
+        return f"Logger({self.file})"
+
+    def get_file(self) -> str:
+        return self.file
+
+    def get_size_file(self) -> float:
+        return os.path.getsize(self.file)
 
     def log_info(self, message):
         self.logger.info(message)

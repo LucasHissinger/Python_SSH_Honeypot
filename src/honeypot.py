@@ -13,7 +13,8 @@ import paramiko.rsakey
 
 from src.Honeypotclass import Honeypot
 from src.get_infos_user import get_infos_user
-from src.DatabaseClass import create_database, Database
+from src.DatabaseClass import create_database, Database, insert_infos, update_logs
+from src.status_type import Status
 
 SSH_BANNER = "SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.1"
 
@@ -31,39 +32,6 @@ def run(ip: str, port: int, key_path: str) -> None:
         client, addr = sock.accept()
         threading.Thread(target=handle_connection, args=(client, host_key, addr, bdd)).start()
 
-def insert_infos(server: Honeypot, ip: str, infos: dict, address: str) -> None:
-    if server.bdd.check_if_exists(server.bdd.tables["users"], f"ip = '{ip}'"):
-        return
-    result = server.bdd.insert(server.bdd.tables["users"], {"ip": ip, "created_at": datetime.now()})
-    user_id = result.lastrowid
-    if infos is not None:
-        infos_user_values = {
-            "user_id": user_id,
-            "country": infos.get("country", ""),
-            "countryCode": infos.get("countryCode", ""),
-            "region": infos.get("region", ""),
-            "regionName": infos.get("regionName", ""),
-            "city": infos.get("city", ""),
-            "zip": infos.get("zip", ""),
-            "isp": infos.get("isp", ""),
-            "addr": address if address else "",
-            "created_at": datetime.now()
-        }
-    else:
-        infos_user_values = {
-            "user_id": user_id,
-            "country": "",
-            "countryCode": "",
-            "region": "",
-            "regionName": "",
-            "city": "",
-            "zip": "",
-            "isp": "",
-            "addr": address if address else "",
-            "created_at": datetime.now()
-        }
-    server.bdd.insert(server.bdd.tables["infos"], [infos_user_values])
-    server.bdd.conn.commit()
 
 def handle_connection(
     conn: socket.socket, host_key: paramiko.rsakey.RSAKey, addr: tuple, bdd: Database
@@ -91,6 +59,7 @@ def handle_chan(transport: paramiko.Transport, addr: tuple, server: Honeypot) ->
     chan = transport.accept(10)
     if chan is None:
         print("*** No channel (from " + addr[0] + ").")
+        update_logs(server, Status.COMPLETE.value, server.logger.get_size_file())
         raise Exception("No channel")
     chan.settimeout(100)
     chan.send("Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-128-generic x86_64)\r\n")
@@ -105,4 +74,5 @@ def handle_chan(transport: paramiko.Transport, addr: tuple, server: Honeypot) ->
                 break
         except Exception as e:
             print(f"Error: {e}")
+            update_logs(server, Status.COMPLETE.value, server.logger.get_size_file())
             break
