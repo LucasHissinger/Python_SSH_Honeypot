@@ -1,14 +1,15 @@
 import unittest
 from unittest.mock import MagicMock
 from src.Honeypotclass import Honeypot
-import paramiko
 
 
 class TestHoneypot(unittest.TestCase):
     def setUp(self):
-        self.honeypot = Honeypot(22, "127.0.0.1", "key/host_key.pem", "192.168.0.1")
+        self.honeypot = Honeypot(22, "127.0.0.1", "key/host_key.pem", "192.168.0.1", None)
 
     def test_check_channel_request(self):
+        import paramiko
+
         kind = "session"
         chanid = 1
         result = self.honeypot.check_channel_request(kind, chanid)
@@ -39,6 +40,8 @@ class TestHoneypot(unittest.TestCase):
         self.assertTrue(result)
 
     def test_check_auth_password(self):
+        import paramiko
+
         username = "testuser"
         password = "testpassword"
         result = self.honeypot.check_auth_password(username, password)
@@ -50,6 +53,8 @@ class TestHoneypot(unittest.TestCase):
         self.assertEqual(result, "publickey,password, none")
 
     def test_check_auth_publickey(self):
+        import paramiko
+
         username = "testuser"
         key = MagicMock()
         key.get_name.return_value = "ssh-rsa"

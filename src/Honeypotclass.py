@@ -9,13 +9,10 @@ import paramiko
 
 from src.sys_func import commands, check_binary
 from src.Loggerclass import Logger
-from src.DatabaseClass import Database
 
 
 class Honeypot(paramiko.ServerInterface):
-    def __init__(
-        self, port: int, ip_serv: str, host_key_filename: str, ip_client: str, db: Database
-    ) -> None:
+    def __init__(self, port: int, ip_serv: str, host_key_filename: str, ip_client: str, db) -> None:
         self.logger = Logger(ip_client)
         self.bdd = db
         self.port = port

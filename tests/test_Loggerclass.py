@@ -6,7 +6,7 @@ import pytest
 
 @pytest.fixture
 def logger():
-    return Logger("127.0.0.1")
+    return Logger("8.8.8.8")
 
 
 def test_logger_creation(logger):
